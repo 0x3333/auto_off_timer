@@ -6,16 +6,16 @@
         "title": "Setup Auto Off Timer",
         "description": "Configure entities to automatically turn off after a specified timeout when they turn on.",
         "data": {
-          "name": "Name for this Auto Off Timer configuration",
-          "entities": "Select entities that should automatically turn off after the timeout",
-          "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must be true for the timer to activate"
+          "name": "Name",
+          "entities": "Entities",
+          "timeout": "Timeout Duration",
+          "enable_template": "Enable Condition (Template)"
         },
         "data_description": {
           "name": "Name for this Auto Off Timer configuration",
           "entities": "Select entities that should automatically turn off after the timeout",
           "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must be true for the timer to activate"
+          "enable_template": "Optional template condition that must evaluate true for the timer to activate"
         }
       }
     },
@@ -28,21 +28,20 @@
       "already_configured": "This Auto Off Timer configuration already exists"
     }
   },
-
   "options": {
     "step": {
       "init": {
         "title": "Configure Auto Off Timer",
         "description": "Update the entities and timeout settings for this Auto Off Timer.",
         "data": {
-          "entities": "Select entities that should automatically turn off after the timeout",
-          "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must be true for the timer to activate"
+          "entities": "Entities",
+          "timeout": "Timeout Duration",
+          "enable_template": "Enable Condition (Template)"
         },
         "data_description": {
           "entities": "Select entities that should automatically turn off after the timeout",
           "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must be true for the timer to activate"
+          "enable_template": "Optional template condition that must evaluate true for the timer to activate"
         }
       }
     },
