@@ -34,21 +34,21 @@
         "title": "Configurar Temporizador de Apagado Automático",
         "description": "Actualice las entidades y configuraciones de tiempo de espera para este Temporizador de Apagado Automático.",
         "data": {
-          "entities": "%key:config.step.user.data.entities%",
-          "timeout": "%key:config.step.user.data.timeout%",
-          "enable_template": "%key:config.step.user.data.enable_template%"
+          "entities": "Entidades",
+          "timeout": "Duración del Tiempo de Espera",
+          "enable_template": "Condición de Activación (Plantilla)"
         },
         "data_description": {
-          "entities": "%key:config.step.user.data_description.entities%",
-          "timeout": "%key:config.step.user.data_description.timeout%",
-          "enable_template": "%key:config.step.user.data_description.enable_template%"
+          "entities": "Seleccione las entidades que deben apagarse automáticamente después del tiempo de espera",
+          "timeout": "Cuánto tiempo esperar antes de apagar las entidades",
+          "enable_template": "Plantilla de condición opcional que debe ser verdadera para que se active el temporizador"
         }
       }
     },
     "error": {
-      "entities_required": "%key:config.error.entities_required%",
-      "timeout_required": "%key:config.error.timeout_required%",
-      "invalid_entities_template": "%key:config.error.invalid_entities_template%"
+      "entities_required": "Debe seleccionar al menos una entidad",
+      "timeout_required": "La duración del tiempo de espera debe ser mayor que 0",
+      "invalid_entities_template": "Estas entidades no se pueden apagar: {entities_list}"
     }
   }
 }

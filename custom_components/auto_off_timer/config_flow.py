@@ -1,4 +1,5 @@
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME, SERVICE_TURN_OFF
 from homeassistant.core import callback
