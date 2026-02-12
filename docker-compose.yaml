@@ -1,0 +1,16 @@
+services:
+  ha:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: ha
+    restart: unless-stopped
+    privileged: true
+
+    environment:
+      - TZ=America/Sao_Paulo
+
+    volumes:
+      - ./config:/config
+      - ./custom_components/auto_off_timer:/config/custom_components/auto_off_timer
+
+    ports:
+      - "8123:8123"

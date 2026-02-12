@@ -2,8 +2,14 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import SERVICE_TURN_OFF, STATE_OFF, STATE_ON, STATE_UNAVAILABLE
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+)
+from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.template import Template
@@ -13,6 +19,7 @@ from .const import (
     CONF_ENTITIES,
     CONF_TIMEOUT,
     DOMAIN,
+    EVENT_AUTO_OFF_TIMER_TURN_OFF,
     STORAGE_KEY_TEMPLATE,
     STORAGE_VERSION,
 )
@@ -132,13 +139,30 @@ class AutoOffTimerManager:
         domain = entity_id.split(".")[0]
         _LOGGER.debug("Timeout expired for %s; calling %s.turn_off", entity_id, domain)
 
-        await self.hass.services.async_call(
-            domain, SERVICE_TURN_OFF, {"entity_id": entity_id}, blocking=True
+        context = Context()
+
+        self.hass.bus.async_fire(
+            EVENT_AUTO_OFF_TIMER_TURN_OFF,
+            {
+                ATTR_ENTITY_ID: entity_id,
+            },
+            context=context,
         )
 
-        self.timers.pop(entity_id, None)
-        self._remove_expiry_map_entry(entity_id)
-        await self._save_expiry_map()
+        try:
+            await self.hass.services.async_call(
+                domain,
+                SERVICE_TURN_OFF,
+                {"entity_id": entity_id},
+                blocking=True,
+                context=context,
+            )
+        except Exception as exc:
+            _LOGGER.error("Failed to turn off %s: %s", entity_id, exc)
+        finally:
+            self.timers.pop(entity_id, None)
+            self._remove_expiry_map_entry(entity_id)
+            await self._save_expiry_map()
 
     def _schedule_timeout(self, entity_id: str) -> None:
         """Schedule or renew the off-timer for an entity."""
@@ -232,6 +256,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
     """Initialize the integration data store."""
 
     hass.data.setdefault(DOMAIN, {})
+
     return True
 
 
