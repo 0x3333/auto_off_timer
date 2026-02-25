@@ -232,17 +232,11 @@ class AutoOffTimerManager:
         )
 
         if new_state.state == STATE_ON:
-            if old_state.state == STATE_UNAVAILABLE:
-                _LOGGER.warning(
-                    "Entity %s turned ON, but last state was UNAVAILABLE, ignoring",
-                    entity_id,
-                )
-                return
-            elif not self._should_enable_for_entity(entity_id):
+            if not self._should_enable_for_entity(entity_id):
                 _LOGGER.info("Entity %s turned ON, but condition not met", entity_id)
                 return
             self._schedule_timeout(entity_id)
-        elif new_state.state == STATE_OFF:
+        elif new_state.state == STATE_OFF or new_state.state == STATE_UNAVAILABLE:
             self._cancel_timeout(entity_id)
 
 
