@@ -9,13 +9,15 @@
           "name": "Nombre",
           "entities": "Entidades",
           "timeout": "Duración del Tiempo de Espera",
-          "enable_template": "Condición de Activación (Plantilla)"
+          "enable_template": "Condición de Activación (Plantilla)",
+          "restart_on_turn_on": "Reiniciar temporizador al encender de nuevo"
         },
         "data_description": {
           "name": "Nombre para esta configuración del Temporizador de Apagado Automático",
           "entities": "Seleccione las entidades que deben apagarse automáticamente después del tiempo de espera",
           "timeout": "Cuánto tiempo esperar antes de apagar las entidades",
-          "enable_template": "Plantilla de condición opcional que debe ser verdadera para que se active el temporizador"
+          "enable_template": "Plantilla de condición opcional que debe ser verdadera para que se active el temporizador",
+          "restart_on_turn_on": "Si está activado, una llamada turn_on con la entidad ya encendida reinicia el tiempo de espera"
         }
       }
     },
@@ -36,12 +38,14 @@
         "data": {
           "entities": "Entidades",
           "timeout": "Duración del Tiempo de Espera",
-          "enable_template": "Condición de Activación (Plantilla)"
+          "enable_template": "Condición de Activación (Plantilla)",
+          "restart_on_turn_on": "Reiniciar temporizador al encender de nuevo"
         },
         "data_description": {
           "entities": "Seleccione las entidades que deben apagarse automáticamente después del tiempo de espera",
           "timeout": "Cuánto tiempo esperar antes de apagar las entidades",
-          "enable_template": "Plantilla de condición opcional que debe ser verdadera para que se active el temporizador"
+          "enable_template": "Plantilla de condición opcional que debe ser verdadera para que se active el temporizador",
+          "restart_on_turn_on": "Si está activado, una llamada turn_on con la entidad ya encendida reinicia el tiempo de espera"
         }
       }
     },

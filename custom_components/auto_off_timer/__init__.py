@@ -3,20 +3,27 @@ from datetime import datetime, timedelta, timezone
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_DOMAIN,
     ATTR_ENTITY_ID,
+    ATTR_SERVICE,
+    ATTR_SERVICE_DATA,
+    EVENT_CALL_SERVICE,
     SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
     STATE_UNAVAILABLE,
 )
-from homeassistant.core import Context, HomeAssistant, callback
+from homeassistant.core import Context, HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.helpers.service import async_extract_entity_ids
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.template import Template
 
 from .const import (
     CONF_ENABLE_TEMPLATE,
     CONF_ENTITIES,
+    CONF_RESTART_ON_TURN_ON,
     CONF_TIMEOUT,
     DOMAIN,
     EVENT_AUTO_OFF_TIMER_TURN_OFF,
@@ -25,6 +32,13 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@callback
+def _is_turn_on_service(event_data) -> bool:
+    """Return True if the service call is turn_on."""
+
+    return event_data.get(ATTR_SERVICE) == SERVICE_TURN_ON
 
 
 class AutoOffTimerManager:
@@ -42,6 +56,9 @@ class AutoOffTimerManager:
         self.timers = {}
         self.expiry_map = {}
         self.reload_unsub = None
+        self.service_call_unsub = None
+        self.entities = set()
+        self.restart_on_turn_on = False
 
     async def async_setup(self) -> bool:
         """Set up the timer manager."""
@@ -57,17 +74,32 @@ class AutoOffTimerManager:
         self.reload_unsub = self.entry.add_update_listener(_update_listener)
 
         # Track state changes for configured entities
-        entities = self.entry.options.get(CONF_ENTITIES, [])
-        for entity in entities:
+        self.entities = {
+            entity_id.lower()
+            for entity_id in self.entry.options.get(CONF_ENTITIES, [])
+        }
+        self.restart_on_turn_on = bool(
+            self.entry.options.get(CONF_RESTART_ON_TURN_ON, False)
+        )
+        for entity in self.entities:
             self.unsubs[entity] = async_track_state_change_event(
                 self.hass, entity, self._state_change_handler
             )
 
+        if self.restart_on_turn_on:
+            self.service_call_unsub = self.hass.bus.async_listen(
+                EVENT_CALL_SERVICE,
+                self._handle_turn_on_service,
+                event_filter=_is_turn_on_service,
+            )
+
         _LOGGER.info(
-            "Auto Off Timer: entry %s configured for %s with timeout %s",
+            "Auto Off Timer: entry %s configured for %s with timeout %s "
+            "(restart_on_turn_on=%s)",
             self.entry.entry_id,
-            entities,
+            sorted(self.entities),
             self.entry.options.get(CONF_TIMEOUT),
+            self.restart_on_turn_on,
         )
         return True
 
@@ -83,6 +115,10 @@ class AutoOffTimerManager:
         for handle in self.timers.values():
             handle()
         self.timers.clear()
+
+        if self.service_call_unsub:
+            self.service_call_unsub()
+            self.service_call_unsub = None
 
         # Remove update listener
         if self.reload_unsub:
@@ -188,6 +224,51 @@ class AutoOffTimerManager:
         _LOGGER.debug(
             "Timer scheduled for %s in %s seconds", entity_id, timeout_seconds
         )
+
+    async def _handle_turn_on_service(self, event) -> None:
+        """Restart the timer when turn_on targets an entity that is already on."""
+
+        service_data = event.data.get(ATTR_SERVICE_DATA) or {}
+        domain = event.data.get(ATTR_DOMAIN)
+        service = event.data.get(ATTR_SERVICE)
+        if not domain or service != SERVICE_TURN_ON:
+            return
+
+        try:
+            service_call = ServiceCall(
+                self.hass,
+                domain,
+                service,
+                service_data,
+                event.context,
+            )
+            entity_ids = {
+                entity_id.lower()
+                for entity_id in await async_extract_entity_ids(service_call)
+            }
+        except Exception as exc:
+            _LOGGER.error("Failed to resolve turn_on targets: %s", exc)
+            return
+
+        for entity_id in entity_ids:
+            if entity_id not in self.entities:
+                continue
+
+            state = self.hass.states.get(entity_id)
+            if state is None or state.state != STATE_ON:
+                continue
+
+            if not self._should_enable_for_entity(entity_id):
+                _LOGGER.debug(
+                    "turn_on for %s ignored, condition not met", entity_id
+                )
+                continue
+
+            _LOGGER.debug(
+                "Restarting timer for %s after turn_on while already on",
+                entity_id,
+            )
+            self._schedule_timeout(entity_id)
 
     def _cancel_timeout(self, entity_id: str) -> None:
         """Cancel the off-timer for an entity."""

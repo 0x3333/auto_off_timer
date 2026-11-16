@@ -9,13 +9,15 @@
           "name": "Name",
           "entities": "Entities",
           "timeout": "Timeout Duration",
-          "enable_template": "Enable Condition (Template)"
+          "enable_template": "Enable Condition (Template)",
+          "restart_on_turn_on": "Restart Timer on Turn On"
         },
         "data_description": {
           "name": "Name for this Auto Off Timer configuration",
           "entities": "Select entities that should automatically turn off after the timeout",
           "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must evaluate true for the timer to activate"
+          "enable_template": "Optional template condition that must evaluate true for the timer to activate",
+          "restart_on_turn_on": "If enabled, a turn_on service call while the entity is already on restarts the timeout"
         }
       }
     },
@@ -36,12 +38,14 @@
         "data": {
           "entities": "Entities",
           "timeout": "Timeout Duration",
-          "enable_template": "Enable Condition (Template)"
+          "enable_template": "Enable Condition (Template)",
+          "restart_on_turn_on": "Restart Timer on Turn On"
         },
         "data_description": {
           "entities": "Select entities that should automatically turn off after the timeout",
           "timeout": "How long to wait before turning off the entities",
-          "enable_template": "Optional template condition that must evaluate true for the timer to activate"
+          "enable_template": "Optional template condition that must evaluate true for the timer to activate",
+          "restart_on_turn_on": "If enabled, a turn_on service call while the entity is already on restarts the timeout"
         }
       }
     },

@@ -1,6 +1,8 @@
 # Auto Off Timer
 
-A Home Assistant custom integration that automatically turns off configured entities after a user-defined timeout—optionally gated by custom Jinja2 template conditions. When an entities is turned on and the user-specified condition evaluates to `true`, a timer starts; when the timer expires the entities is switched off. The timer is cancelled if the entities is manually turned off or renewed if some attribute is modified (e.g., brightness change). Each entities has its own independent timer. *Timers are persisted, if Home Assistant is restarted, the timers will be restored*.
+Requires Home Assistant 2026.10 or newer.
+
+A Home Assistant custom integration that automatically turns off configured entities after a user-defined timeout—optionally gated by custom Jinja2 template conditions. When an entities is turned on and the user-specified condition evaluates to `true`, a timer starts; when the timer expires the entities is switched off. The timer is cancelled if the entities is manually turned off or renewed if some attribute is modified (e.g., brightness change). Optionally, the timer can restart when `turn_on` is called again while the entity is already on. Each entities has its own independent timer. *Timers are persisted, if Home Assistant is restarted, the timers will be restored*.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/0x3333/auto_off_timer)
 [![GitHub Release](https://img.shields.io/github/release/0x3333/auto_off_timer.svg)](https://github.com/0x3333/auto_off_timer/releases)
@@ -11,6 +13,7 @@ A Home Assistant custom integration that automatically turns off configured enti
 - Automatically turns off the entity when the timeout expires
 - Cancels the timer if the entity is manually turned off
 - Renews the timer if the entity’s state is modified while on
+- Optionally restarts the timer when `turn_on` is called again while the entity is already on
 - Supports multiple entities simultaneously, each with its own timeout
 - Condition via Template: define any Jinja2 template that must evaluate to `true` to enable/disable the timeout
 
@@ -46,6 +49,7 @@ After installation and restart:
    - **Entities**: select one or more entities to monitor.
    - **Timeout**: choose a timeout duration in `HH:MM:SS` format (e.g., `00:10:00` for 10 minutes).
    - **Condition Template** *(optional)*: enter a Jinja2 template that will be evaluated after the entity is turned `on`. The timer will only be started if the template renders `true`.
+   - **Restart Timer on Turn On** *(optional, default off)*: if enabled, a new `turn_on` service call while the entity is already on restarts the timeout. This includes `domain.turn_on` and `homeassistant.turn_on`, including calls that target the entity through a group, device, area, floor, or label. Controls that do not call `turn_on` in Home Assistant do not restart the timer.
 4. Click **Submit**.
 
 The integration will begin monitoring the selected entities. You can create as many instances (Config Entries) as you like, each with its own set of entities, timeout and condition.

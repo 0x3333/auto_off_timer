@@ -6,7 +6,13 @@ from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 
-from .const import CONF_ENABLE_TEMPLATE, CONF_ENTITIES, CONF_TIMEOUT, DOMAIN
+from .const import (
+    CONF_ENABLE_TEMPLATE,
+    CONF_ENTITIES,
+    CONF_RESTART_ON_TURN_ON,
+    CONF_TIMEOUT,
+    DOMAIN,
+)
 
 
 def _seconds_to_dict(seconds: int) -> dict:
@@ -20,6 +26,7 @@ def _get_schema(
     default_entities=None,
     default_timeout: dict = None,
     default_template: str = None,
+    default_restart_on_turn_on: bool = False,
     with_title: bool = True,
 ):
     """Return the schema for the form (user and options)."""
@@ -43,6 +50,9 @@ def _get_schema(
         vol.Optional(
             CONF_ENABLE_TEMPLATE, default=default_template
         ): selector.TemplateSelector(selector.TemplateSelectorConfig()),
+        vol.Required(
+            CONF_RESTART_ON_TURN_ON, default=default_restart_on_turn_on
+        ): selector.BooleanSelector(),
     }
 
     if with_title:
@@ -51,7 +61,9 @@ def _get_schema(
     return vol.Schema(schema_options)
 
 
-def _process_user_input(hass, user_input: dict) -> tuple[list[str], int, str, dict]:
+def _process_user_input(
+    hass, user_input: dict
+) -> tuple[list[str], int, str, bool, dict, dict]:
     """Process and validate user input."""
     errors = {}
     invalid = []
@@ -69,6 +81,7 @@ def _process_user_input(hass, user_input: dict) -> tuple[list[str], int, str, di
     )
 
     template = user_input.get(CONF_ENABLE_TEMPLATE, "")
+    restart_on_turn_on = bool(user_input.get(CONF_RESTART_ON_TURN_ON, False))
 
     if not entities or len(entities) == 0:
         errors[CONF_ENTITIES] = "entities_required"
@@ -78,7 +91,7 @@ def _process_user_input(hass, user_input: dict) -> tuple[list[str], int, str, di
     elif not timeout:
         errors[CONF_TIMEOUT] = "timeout_required"
 
-    return entities, timeout, template, errors, placeholders
+    return entities, timeout, template, restart_on_turn_on, errors, placeholders
 
 
 class AutoOffTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -94,11 +107,17 @@ class AutoOffTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         default_entities = None
         default_timeout = None
         default_template = None
+        default_restart_on_turn_on = False
 
         if user_input is not None:
-            entities, timeout, template, errors, placeholders = _process_user_input(
-                self.hass, user_input
-            )
+            (
+                entities,
+                timeout,
+                template,
+                restart_on_turn_on,
+                errors,
+                placeholders,
+            ) = _process_user_input(self.hass, user_input)
             if not errors:
                 return self.async_create_entry(
                     title=user_input[CONF_NAME],
@@ -107,12 +126,14 @@ class AutoOffTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_ENTITIES: entities,
                         CONF_TIMEOUT: timeout,
                         CONF_ENABLE_TEMPLATE: template,
+                        CONF_RESTART_ON_TURN_ON: restart_on_turn_on,
                     },
                 )
 
             default_entities = user_input.get(CONF_ENTITIES)
             default_timeout = user_input.get(CONF_TIMEOUT)
             default_template = user_input.get(CONF_ENABLE_TEMPLATE)
+            default_restart_on_turn_on = restart_on_turn_on
 
         return self.async_show_form(
             step_id="user",
@@ -120,6 +141,7 @@ class AutoOffTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 default_entities=default_entities,
                 default_timeout=default_timeout,
                 default_template=default_template,
+                default_restart_on_turn_on=default_restart_on_turn_on,
             ),
             errors=errors,
             description_placeholders=placeholders,
@@ -141,27 +163,37 @@ class AutoOffTimerOptionsFlowHandler(config_entries.OptionsFlow):
         placeholders = {}
 
         if user_input is not None:
-            entities, timeout, template, errors, placeholders = _process_user_input(
-                self.hass, user_input
-            )
+            (
+                entities,
+                timeout,
+                template,
+                restart_on_turn_on,
+                errors,
+                placeholders,
+            ) = _process_user_input(self.hass, user_input)
             if not errors:
                 return self.async_create_entry(
                     data={
                         CONF_ENTITIES: entities,
                         CONF_TIMEOUT: timeout,
                         CONF_ENABLE_TEMPLATE: template,
+                        CONF_RESTART_ON_TURN_ON: restart_on_turn_on,
                     },
                 )
 
             default_entities = user_input.get(CONF_ENTITIES)
             default_timeout = user_input.get(CONF_TIMEOUT)
             default_template = user_input.get(CONF_ENABLE_TEMPLATE, "")
+            default_restart_on_turn_on = restart_on_turn_on
         else:
             default_entities = self.config_entry.options.get(CONF_ENTITIES, [])
             default_timeout = _seconds_to_dict(
                 self.config_entry.options.get(CONF_TIMEOUT, 300)
             )
             default_template = self.config_entry.options.get(CONF_ENABLE_TEMPLATE, "")
+            default_restart_on_turn_on = self.config_entry.options.get(
+                CONF_RESTART_ON_TURN_ON, False
+            )
 
         return self.async_show_form(
             step_id="init",
@@ -170,6 +202,7 @@ class AutoOffTimerOptionsFlowHandler(config_entries.OptionsFlow):
                 default_entities=default_entities,
                 default_timeout=default_timeout,
                 default_template=default_template,
+                default_restart_on_turn_on=default_restart_on_turn_on,
             ),
             errors=errors,
             description_placeholders=placeholders,

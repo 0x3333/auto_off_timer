@@ -9,13 +9,15 @@
           "name": "Nome",
           "entities": "Entidades",
           "timeout": "Duração do Timeout",
-          "enable_template": "Condição de Ativação (Template)"
+          "enable_template": "Condição de Ativação (Template)",
+          "restart_on_turn_on": "Reiniciar timer ao ligar novamente"
         },
         "data_description": {
           "name": "Nome para esta configuração do Timer de Desligamento Automático",
           "entities": "Selecione as entidades que devem desligar automaticamente após o timeout",
           "timeout": "Quanto tempo aguardar antes de desligar as entidades",
-          "enable_template": "Template de condição opcional que deve ser verdadeiro para o timer ativar"
+          "enable_template": "Template de condição opcional que deve ser verdadeiro para o timer ativar",
+          "restart_on_turn_on": "Se ativado, uma chamada turn_on com a entidade já ligada reinicia o timeout"
         }
       }
     },
@@ -36,12 +38,14 @@
         "data": {
           "entities": "Entidades",
           "timeout": "Duração do Timeout",
-          "enable_template": "Condição de Ativação (Template)"
+          "enable_template": "Condição de Ativação (Template)",
+          "restart_on_turn_on": "Reiniciar timer ao ligar novamente"
         },
         "data_description": {
           "entities": "Selecione as entidades que devem desligar automaticamente após o timeout",
           "timeout": "Quanto tempo aguardar antes de desligar as entidades",
-          "enable_template": "Template de condição opcional que deve ser verdadeiro para o timer ativar"
+          "enable_template": "Template de condição opcional que deve ser verdadeiro para o timer ativar",
+          "restart_on_turn_on": "Se ativado, uma chamada turn_on com a entidade já ligada reinicia o timeout"
         }
       }
     },
